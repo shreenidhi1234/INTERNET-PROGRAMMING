@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Scheduling</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        function populateSpecializations() {
+            const doctorName = document.getElementById('doctorName').value;
+            const specialization = document.getElementById('specialization');
+            
+            const specialties = {
+                'Dr. Smith': 'Cardiology',
+                'Dr. Jones': 'Neurology',
+                'Dr. Brown': 'Pediatrics',
+
+            };
+            specialization.innerHTML = '';// Clear previous options
+            if (specialties[doctorName]) {
+                const option = document.createElement('option');
+                option.value = specialties[doctorName];
+                option.text = specialties[doctorName];
+                specialization.add(option);
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Schedule Appointment</h1>
+        <form action="doctor-management.html" method="post">
+            <label for="doctorName">Doctor Name:</label>
+            <input type="text" id="doctorName" name="doctorName" oninput="populateSpecializations()" required>
+
+            <label for="specialization">Specialization:</label>
+            <select id="specialization" name="specialization" required>
+                <option value="">Select Specialization</option>
+            </select>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
