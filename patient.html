@@ -3,27 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Registration</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Hospital Reservation System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Hide scrollbars */
+        }
+        .full-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto; /* Allow vertical scrolling if content overflows */
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-bottom: 15px;
+        }
+        button:hover {
+            filter: brightness(0.9);
+        }
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: calc(100% - 24px);
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .list p {
+            padding: 15px;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 90%;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .summary {
+            font-size: 18px;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            text-align: left;
+        }
+        .blue { background-color: #007bff; }
+        .red { background-color: #dc3545; }
+        .green { background-color: #28a745; }
+        .yellow { background-color: #ffc107; }
+        .purple { background-color: #6f42c1; }
+        .orange { background-color: #fd7e14; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Patient Registration</h1>
-        <form action="schedule-appointment.html" method="post">
-            <label for="patientName">Patient Name:</label>
-            <input type="text" id="patientName" name="patientName" required>
-
-            <label for="patientId">Patient ID:</label>
-            <input type="text" id="patientId" name="patientId" required>
-
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" rows="4" required></textarea>
-
-            <label for="contact">Contact:</label>
-            <input type="text" id="contact" name="contact" required>
-
-            <button type="submit">Submit</button>
-        </form>
+    <!-- Login page -->
+    <div class="full-screen login-container container">
+        <h1>Hospital Reservation System</h1>
+        <input type="text" placeholder="Username" id="username" required>
+        <input type="password" placeholder="Password" id="password" required>
+        <button class="blue" onclick="showPatientDetails()">Login</button>
     </div>
+
+    <!-- Patient Details page -->
+    <div class="full-screen patient-details-container container" style="display: none;">
+        <h2>Enter Your Details</h2>
+        <input type="text" id="patientName" placeholder="Name" required>
+        <input type="number" id="age" placeholder="Age" required>
+        <input type="text" id="diseases" placeholder="Diseases" required>
+        <input type="number" id="height" placeholder="Height (cm)" required>
+        <input type="number" id="weight" placeholder="Weight (kg)" required>
+        <input type="text" id="city" placeholder="City" required>
+        <button class="red" onclick="showHospitals()">Submit</button>
+    </div>
+
+    <!-- Hospital list -->
+    <div class="full-screen hospital-list-container container" style="display: none;">
+        <h2>Hospitals Near You</h2>
+        <div class="list" id="hospitalList">
+            <!-- Hospitals dynamically populated -->
+        </div>
+    </div>
+
+    <!-- Department list -->
+    <div class="full-screen department-list-container container" style="display: none;">
+        <h2>Select a Department</h2>
+        <div class="list" id="departmentList">
+            <!-- Departments dynamically populated -->
+        </div>
+    </div>
+
+    <!-- Specialist list -->
+    <div class="full-screen specialist-list-container container" style="display: none;">
+        <h2>Select a Specialist</h2>
+        <div class="list" id="specialistList">
+            <!-- Specialists dynamically populated -->
+        </div>
+    </div>
+
+    <!-- Reservation summary -->
+    <div class="full-screen summary-container container" style="display: none;">
+        <h2>Reservation Summary</h2>
+        <div class="summary" id="reservationSummary">
+            <!-- Summary dynamically populated -->
+        </div>
+        <button class="blue" onclick="showSuccess()">Confirm Reservation</button>
+    </div>
+
+    <!-- Success page -->
+    <div class="full-screen success-container container" style="display: none;">
+        <h2>Reservation Done Successfully</h2>
+        <p>Your reservation has been confirmed. Thank you!</p>
+        <button class="blue" onclick="restart()">Go to Login</button>
+    </div>
+
+    <!-- JavaScript to handle functionality -->
+    <script>
+        let patientDetails = {};
+
+        const hospitals = [
+            { name: 'Apollo Hospital', address: 'Greams Road, Chennai', departments: ['Cardiology', 'Neurology', 'Orthopedics', 'Oncology', 'Gastroenterology', 'Pediatrics', 'Nephrology', 'Ophthalmology', 'General Medicine', 'Dermatology', 'Psychiatry'] },
+            { name: 'Fortis Malar Hospital', address: 'Adyar, Chennai', departments: ['Cardiology', 'Neurology', 'Orthopedics', 'Oncology', 'Gastroenterology', 'Pediatrics', 'Nephrology', 'Ophthalmology', 'General Medicine', 'Dermatology', 'Psychiatry'] },
+            { name: 'MIOT International', address: 'Manapakkam, Chennai', departments: ['Cardiology', 'Neurology', 'Orthopedics', 'Oncology', 'Gastroenterology', 'Pediatrics', 'Nephrology', 'Ophthalmology', 'General Medicine', 'Dermatology', 'Psychiatry'] },
+            { name: 'Sankara Nethralaya', address: 'Nungambakkam, Chennai', departments: ['Cardiology', 'Neurology', 'Orthopedics', 'Oncology', 'Gastroenterology', 'Pediatrics', 'Nephrology', 'Ophthalmology', 'General Medicine', 'Dermatology', 'Psychiatry'] },
+            { name: 'Kauvery Hospital', address: 'Alwarpet, Chennai', departments: ['Cardiology', 'Neurology', 'Orthopedics', 'Oncology', 'Gastroenterology', 'Pediatrics', 'Nephrology', 'Ophthalmology', 'General Medicine', 'Dermatology', 'Psychiatry'] }
+        ];
+
+        const specialists = {
+            'Cardiology': [
+                { name: 'Dr. A. K. Singh', timing: '10:00 AM - 12:00 PM', charge: '₹500' },
+                { name: 'Dr. B. Kumar', timing: '02:00 PM - 04:00 PM', charge: '₹600' },
+                { name: 'Dr. C. Patel', timing: '03:00 PM - 05:00 PM', charge: '₹550' }
+            ],
+            'Neurology': [
+                { name: 'Dr. C. Gupta', timing: '09:00 AM - 11:00 AM', charge: '₹700' },
+                { name: 'Dr. D. Mehta', timing: '01:00 PM - 03:00 PM', charge: '₹650' },
+                { name: 'Dr. E. Sharma', timing: '03:00 PM - 05:00 PM', charge: '₹600' }
+            ],
+            'Orthopedics': [
+                { name: 'Dr. F. Shah', timing: '10:00 AM - 12:00 PM', charge: '₹600' },
+                { name: 'Dr. G. Agarwal', timing: '02:00 PM - 04:00 PM', charge: '₹650' },
+                { name: 'Dr. H. Nair', timing: '04:00 PM - 06:00 PM', charge: '₹700' }
+            ],
+            'Oncology': [
+                { name: 'Dr. I. Rao', timing: '09:00 AM - 11:00 AM', charge: '₹800' },
+                { name: 'Dr. J. Verma', timing: '01:00 PM - 03:00 PM', charge: '₹750' },
+                { name: 'Dr. K. Saxena', timing: '03:00 PM - 05:00 PM', charge: '₹700' }
+            ],
+            'Gastroenterology': [
+                { name: 'Dr. L. Nair', timing: '10:00 AM - 12:00 PM', charge: '₹500' },
+                { name: 'Dr. M. Rao', timing: '02:00 PM - 04:00 PM', charge: '₹550' },
+                { name: 'Dr. N. Sharma', timing: '03:00 PM - 05:00 PM', charge: '₹600' }
+            ],
+            'Pediatrics': [
+                { name: 'Dr. O. Singh', timing: '09:00 AM - 11:00 AM', charge: '₹400' },
+                { name: 'Dr. P. Jain', timing: '01:00 PM - 03:00 PM', charge: '₹450' },
+                { name: 'Dr. Q. Gupta', timing: '03:00 PM - 05:00 PM', charge: '₹500' }
+            ],
+            'Nephrology': [
+                { name: 'Dr. R. Sharma', timing: '10:00 AM - 12:00 PM', charge: '₹600' },
+                { name: 'Dr. S. Mehta', timing: '02:00 PM - 04:00 PM', charge: '₹650' },
+                { name: 'Dr. T. Agarwal', timing: '04:00 PM - 06:00 PM', charge: '₹700' }
+            ],
+            'Ophthalmology': [
+                { name: 'Dr. U. Patel', timing: '09:00 AM - 11:00 AM', charge: '₹400' },
+                { name: 'Dr. V. Shah', timing: '01:00 PM - 03:00 PM', charge: '₹450' },
+                { name: 'Dr. W. Singh', timing: '03:00 PM - 05:00 PM', charge: '₹500' }
+            ],
+            'General Medicine': [
+                { name: 'Dr. X. Kumar', timing: '10:00 AM - 12:00 PM', charge: '₹350' },
+                { name: 'Dr. Y. Gupta', timing: '02:00 PM - 04:00 PM', charge: '₹400' },
+                { name: 'Dr. Z. Agarwal', timing: '04:00 PM - 06:00 PM', charge: '₹450' }
+            ],
+            'Dermatology': [
+                { name: 'Dr. AA. Sharma', timing: '09:00 AM - 11:00 AM', charge: '₹300' },
+                { name: 'Dr. BB. Patel', timing: '01:00 PM - 03:00 PM', charge: '₹350' },
+                { name: 'Dr. CC. Rao', timing: '03:00 PM - 05:00 PM', charge: '₹400' }
+            ],
+            'Psychiatry': [
+                { name: 'Dr. DD. Singh', timing: '10:00 AM - 12:00 PM', charge: '₹500' },
+                { name: 'Dr. EE. Mehta', timing: '02:00 PM - 04:00 PM', charge: '₹550' },
+                { name: 'Dr. FF. Jain', timing: '04:00 PM - 06:00 PM', charge: '₹600' }
+            ]
+        };
+
+        function showPatientDetails() {
+            patientDetails = {
+                name: document.getElementById('patientName').value,
+                age: document.getElementById('age').value,
+                diseases: document.getElementById('diseases').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                city: document.getElementById('city').value
+            };
+
+            document.querySelector('.login-container').style.display = 'none';
+            document.querySelector('.patient-details-container').style.display = 'flex';
+        }
+
+        function showHospitals() {
+            const city = document.getElementById('city').value;
+            const hospitalList = document.getElementById('hospitalList');
+            hospitalList.innerHTML = '';
+
+            hospitals.forEach(hospital => {
+                const hospitalItem = document.createElement('p');
+                hospitalItem.className = 'blue';
+                hospitalItem.innerHTML = `${hospital.name} - ${hospital.address}`;
+                hospitalItem.onclick = () => showDepartments(hospital);
+                hospitalList.appendChild(hospitalItem);
+            });
+
+            document.querySelector('.patient-details-container').style.display = 'none';
+            document.querySelector('.hospital-list-container').style.display = 'flex';
+        }
+
+        function showDepartments(hospital) {
+            const departmentList = document.getElementById('departmentList');
+            departmentList.innerHTML = '';
+
+            hospital.departments.forEach(department => {
+                const departmentItem = document.createElement('p');
+                departmentItem.className = 'orange';
+                departmentItem.innerHTML = department;
+                departmentItem.onclick = () => showSpecialists(department);
+                departmentList.appendChild(departmentItem);
+            });
+
+            document.querySelector('.hospital-list-container').style.display = 'none';
+            document.querySelector('.department-list-container').style.display = 'flex';
+        }
+
+        function showSpecialists(department) {
+            document.querySelector('.department-list-container').style.display = 'none';
+            document.querySelector('.specialist-list-container').style.display = 'flex';
+
+            const specialistList = document.getElementById('specialistList');
+            specialistList.innerHTML = '';
+
+            if (specialists[department]) {
+                specialists[department].forEach(specialist => {
+                    const specialistItem = document.createElement('p');
+                    specialistItem.className = 'green';
+                    specialistItem.innerHTML = `${specialist.name} - ${specialist.timing} - Charge: ${specialist.charge}`;
+                    specialistItem.onclick = () => showSummary(department, specialist);
+                    specialistList.appendChild(specialistItem);
+                });
+            } else {
+                specialistList.innerHTML = '<p>No specialists available for this department.</p>';
+            }
+        }
+
+        function showSummary(department, specialist) {
+            const reservationSummary = document.getElementById('reservationSummary');
+            reservationSummary.innerHTML = `
+                <p><strong>Patient Name:</strong> ${patientDetails.name}</p>
+                <p><strong>Age:</strong> ${patientDetails.age}</p>
+                <p><strong>Diseases:</strong> ${patientDetails.diseases}</p>
+                <p><strong>Height:</strong> ${patientDetails.height} cm</p>
+                <p><strong>Weight:</strong> ${patientDetails.weight} kg</p>
+                <p><strong>City:</strong> ${patientDetails.city}</p>
+                <p><strong>Department:</strong> ${department}</p>
+                <p><strong>Specialist:</strong> ${specialist.name}</p>
+                <p><strong>Timing:</strong> ${specialist.timing}</p>
+                <p><strong>Charge:</strong> ${specialist.charge}</p>
+            `;
+
+            document.querySelector('.specialist-list-container').style.display = 'none';
+            document.querySelector('.summary-container').style.display = 'flex';
+        }
+
+        function showSuccess() {
+            document.querySelector('.summary-container').style.display = 'none';
+            document.querySelector('.success-container').style.display = 'flex';
+        }
+
+        function restart() {
+            document.querySelector('.success-container').style.display = 'none';
+            document.querySelector('.login-container').style.display = 'flex';
+        }
+    </script>
 </body>
 </html>
+
